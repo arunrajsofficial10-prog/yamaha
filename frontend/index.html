@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Adona Style Generator</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="theme-color" content="#0c0a18">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">♫</span> <span class="brand-text">ADONA STYLE GENERATOR</span></div>
+    <div class="topbar-project" id="topbarProject" hidden>
+      <input id="projectName" class="name-input" aria-label="Project name" maxlength="120">
+    </div>
+    <div class="topbar-actions">
+      <button class="btn primary" id="newProjectBtn">＋ New song</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <h3 class="side-title">Your progress</h3>
+      <ol class="steps" id="steps"></ol>
+      <h3 class="side-title">Recent songs</h3>
+      <ul class="recent" id="recent"><li class="muted small">No songs yet</li></ul>
+    </aside>
+
+    <main class="main">
+      <!-- Upload view -->
+      <section id="uploadView" class="view">
+        <label class="dropzone" id="dropzone" tabindex="0">
+          <input type="file" id="fileInput" accept=".mp3,.wav,.flac,.ogg,audio/*" hidden>
+          <div class="dz-icon">♫</div>
+          <div class="dz-title">Drop your song here</div>
+          <div class="muted">or click to browse</div>
+          <div class="chips"><span class="chip">MP3</span><span class="chip">WAV</span><span class="chip">FLAC</span><span class="chip">OGG</span><span class="chip">8 s – 20 min</span></div>
+          <div class="dz-progress" id="uploadProgress" hidden><div class="bar"><span></span></div><div class="small muted" id="uploadStatus"></div></div>
+        </label>
+        <p class="explain muted">
+          We listen to the recording, find its tempo, key and the drummer's real groove, and turn it into a
+          style for your Yamaha keyboard: PSR-SX, Genos, PSR-S, PSR-E and PSR-I series.
+        </p>
+      </section>
+
+      <!-- Project view -->
+      <section id="projectView" class="view" hidden>
+        <div class="summary">
+          <div class="stat stat-song"><div class="label">Song</div><div class="value ellipsis" id="sumSong">–</div></div>
+          <div class="stat stat-bpm"><div class="label">BPM</div><div class="value" id="sumBpm">–</div><div class="conf" id="sumBpmConf"></div></div>
+          <div class="stat stat-key"><div class="label">Key</div><div class="value" id="sumKey">–</div><div class="conf" id="sumKeyConf"></div></div>
+          <div class="stat stat-time"><div class="label">Time</div><div class="value" id="sumTime">–</div><div class="conf" id="sumTimeConf"></div></div>
+          <div class="stat stat-dur"><div class="label">Length</div><div class="value" id="sumDur">–</div></div>
+          <div class="stat action">
+            <button class="btn primary" id="analyzeBtn">Analyze song</button>
+          </div>
+        </div>
+
+        <div class="job" id="jobPanel" hidden>
+          <div class="job-row"><span id="jobMessage">Analyzing…</span><span id="jobPct" class="mono">0%</span></div>
+          <div class="bar"><span id="jobBar"></span></div>
+        </div>
+
+        <div id="warnings" class="warnings"></div>
+
+        <div class="panel wave-panel">
+          <div class="transport">
+            <button class="icon-btn play" id="playBtn" title="Play (Space)" aria-label="Play">▶</button>
+            <button class="icon-btn" id="stopBtn" title="Stop" aria-label="Stop">■</button>
+            <span class="mono time" id="timeDisplay">0:00.0 / 0:00</span>
+            <span class="mono barpos" id="barDisplay"></span>
+            <label class="toggle" title="Click on every detected beat (accented on downbeats)">
+              <input type="checkbox" id="metroToggle" checked> Metronome
+            </label>
+            <label class="slider-label">Song <input type="range" id="songVol" min="0" max="1" step="0.01" value="0.8"></label>
+            <label class="slider-label">Click <input type="range" id="clickVol" min="0" max="1" step="0.01" value="0.6"></label>
+            <span class="spacer"></span>
+            <button class="icon-btn" id="zoomOut" title="Zoom out" aria-label="Zoom out">−</button>
+            <button class="icon-btn" id="zoomIn" title="Zoom in" aria-label="Zoom in">＋</button>
+          </div>
+          <div class="wave-wrap" id="waveWrap">
+            <canvas id="wave"></canvas>
+            <div class="wave-loading muted" id="waveLoading">Loading audio…</div>
+          </div>
+          <input type="range" id="scroll" class="scroll" min="0" max="1000" value="0" aria-label="Scroll timeline">
+        </div>
+
+        <div class="panel">
+          <div class="tabs" role="tablist">
+            <button class="tab active" data-tab="bpm">Tempo</button>
+            <button class="tab" data-tab="key">Key</button>
+            <button class="tab" data-tab="beats">Beats &amp; bars</button>
+            <button class="tab" data-tab="file">File</button>
+          </div>
+          <div class="tab-body" id="tabBody"></div>
+        </div>
+
+        <div class="panel style-panel" id="stylePanel">
+          <div class="panel-head"><span class="title-dot"></span><h3>Keyboard style</h3><span class="sub">Built from the song's own drum groove</span></div>
+          <div class="style-body">
+            <div class="style-controls">
+              <label class="field">Your keyboard
+                <select class="input" id="kbSelect" aria-label="Keyboard model"></select>
+              </label>
+              <div class="field">Timing
+                <div class="seg" id="quantSeg" role="radiogroup" aria-label="Quantize">
+                  <button data-q="0" class="on" title="Keep the drummer's exact timing">Original feel</button>
+                  <button data-q="0.25">25%</button><button data-q="0.5">50%</button>
+                  <button data-q="0.75">75%</button><button data-q="1">Quantized</button>
+                </div>
+              </div>
+              <span id="seriesChip"></span>
+              <span class="spacer"></span>
+              <button class="btn" id="editVarBtn" hidden>✎ Edit variations</button>
+            </div>
+            <div class="kb-info" id="kbInfo"></div>
+            <div id="styleStatus" class="small muted"></div>
+            <div class="var-editor" id="varEditor" hidden></div>
+            <div class="var-switch" id="varSwitch" hidden></div>
+            <div class="feel" id="feelInfo"></div>
+            <div class="lane-legend" id="laneLegend" hidden>
+              <span><i style="background:var(--kick)"></i>Kick</span><span><i style="background:var(--snare)"></i>Snare</span>
+              <span><i style="background:var(--chat)"></i>Closed hi-hat</span><span><i style="background:var(--ohat)"></i>Open hi-hat</span>
+              <span><i style="background:var(--crash)"></i>Crash</span>
+            </div>
+            <div class="sections-grid" id="sectionsGrid"></div>
+            <div class="row style-dl">
+              <a class="btn primary" id="dlStyle" download>Download style</a>
+              <a class="btn cyan" id="dlZip" download hidden>Download both styles (.zip)</a>
+              <a class="btn" id="dlMidi" download>Drum MIDI (.mid)</a>
+              <span class="small muted" id="styleSize"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <span class="spacer"></span>
+          <a class="btn ghost" id="dlAnalysis" download>Export analysis</a>
+          <a class="btn ghost" id="dlProject" download>Save project file</a>
+          <button class="btn danger ghost" id="deleteBtn">Delete song</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+  <div class="chart-tip" id="chartTip" hidden></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

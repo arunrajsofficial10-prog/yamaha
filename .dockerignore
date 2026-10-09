@@ -1,0 +1,9 @@
+backend/.venv
+backend/tests
+backend/tools
+**/__pycache__
+**/.pytest_cache
+data
+docs
+.git
+start.bat

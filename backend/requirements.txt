@@ -1,0 +1,14 @@
+# Audio analysis engine
+librosa>=0.10
+soundfile>=0.12      # bundles libsndfile >= 1.1 which decodes MP3 natively (no ffmpeg needed)
+numpy>=1.26
+scipy>=1.11
+mutagen>=1.47        # ID3 / container tag reading
+
+# API server
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+
+# MIDI
+mido>=1.3
