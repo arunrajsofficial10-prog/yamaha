@@ -14,7 +14,7 @@ RETENTION_DAYS = float(os.environ.get("LAK_RETENTION_DAYS", "3" if PUBLIC else "
 
 # Upload validation
 ALLOWED_EXTENSIONS = {".mp3", ".wav", ".flac", ".ogg"}
-MAX_UPLOAD_BYTES = 150 * 1024 * 1024
+MAX_UPLOAD_BYTES = int(float(os.environ.get("LAK_MAX_UPLOAD_MB", "150")) * 1024 * 1024)
 MIN_DURATION_SEC = 8.0           # shorter clips don't contain enough beats to estimate tempo reliably
 MAX_DURATION_SEC = 20 * 60
 
