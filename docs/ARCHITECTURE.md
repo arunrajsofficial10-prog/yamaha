@@ -330,3 +330,24 @@ backend\.venv\Scripts\python -m pytest backend\tests -q     run from backend\: 1
 
 Real-recording tests download librosa's CC-licensed example tracks once, and are skipped when
 offline.
+
+## 11. Hosting (free): Hugging Face Spaces
+
+The repository is a ready-made **Docker Space**. `README.md` carries the Space front matter
+(`sdk: docker`, `app_port: 7860`), and the `Dockerfile` builds the app on `python:3.13-slim`.
+
+| Setting (env) | Container value | Effect |
+|---|---|---|
+| `LAK_PUBLIC` | `1` | Each browser sees only its own songs. Ownership uses an anonymous random id the browser keeps in localStorage and sends as `X-Client-Id`. Project ids are random 128-bit values. |
+| `LAK_RETENTION_DAYS` | `3` | Songs untouched for 3 days are deleted, on startup and on every upload. |
+| `LAK_DATA_DIR` | `/home/user/app/data` | Where uploads and analyses are stored. |
+| `NUMBA_CACHE_DIR` | `/tmp/numba-cache` | A writable JIT cache for librosa. The image build warms it. |
+
+Free tier (CPU Basic, 2 vCPU, 16 GB RAM):
+
+- Storage is **not persistent**. A restart or rebuild clears all songs, so users must download
+  their styles.
+- The Space sleeps after a period without visitors and takes about a minute to wake.
+- Analysis runs one job at a time, so concurrent visitors queue.
+
+Local use is unchanged: `start.bat` runs with `LAK_PUBLIC` off and keeps songs forever.
